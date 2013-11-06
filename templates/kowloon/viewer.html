@@ -61,6 +61,15 @@
                     style.radius = 3;
                 }
                 return style
+            },
+            onEachFeature: function(feature, layer) {
+                if (feature.properties) {
+                    var props = [];
+                    for(var key in feature.properties){
+                        props.push("<strong>" + key + "</strong>: " + feature.properties[key])
+                    }
+                    layer.bindPopup(props.join("<br/>"));
+                }
             }
         }).addTo(map);
     </script>
