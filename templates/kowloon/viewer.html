@@ -48,14 +48,19 @@
          * a style function to color by the average score.
          */
         L.geoJson(geojson, {
+            pointToLayer: function(feature, latlng) { return new L.CircleMarker(latlng) },
             style: function (feature) {
-                return {
+                var style =  {
                     color: "#b00",
                     weight: 1,
                     fillColor: "#b00", 
                     opacity: 0.5,
                     fillOpacity: 0.3
                 }
+                if(feature.geometry.type == "Point") {
+                    style.radius = 3;
+                }
+                return style
             }
         }).addTo(map);
     </script>
