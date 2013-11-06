@@ -1,0 +1,5 @@
+<ul>
+{% for table in database_tables %}
+<li><a href="/viewer/{{ table.model_name }}">{{ table }}</a></li>
+{% endfor %}
+</ul>

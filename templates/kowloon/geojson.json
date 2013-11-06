@@ -1,0 +1,1 @@
+{"type": "FeatureCollection", "features": [{% for object in object_list %}{"geometry": {{ object.geojson|safe }}, "type": "Feature"}{% if not forloop.last %},{% endif %}{% endfor %}]}
