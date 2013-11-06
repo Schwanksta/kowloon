@@ -14,5 +14,8 @@ output = open("kowloon/models.py", "w") # Every time we run, we overwrite
 call_command("inspectdb",stdout=output) # the models file with Django's introspection
 output.close()                          # this way we can run GeoDjango queries over 
                                         # arbitrary tables.
-# Run the web server.
-call_command("runserver")
+if not 'shell' in args:
+    # Run the web server.
+    call_command("runserver")
+else:
+    call_command("shell")
