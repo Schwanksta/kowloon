@@ -21,3 +21,9 @@ Then, once you've configured the settings:
 ```bash
 $ python kowloon.py -d database_name
 ```
+
+You can also inspect your models in a Django shell using:
+
+```bash
+$ python kowloon.py shell -d database_name
+```
