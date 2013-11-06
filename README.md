@@ -16,6 +16,8 @@ $ cd project
 $ pip install -r requirements.txt
 ```
 
+Then, once you've configured the settings:
+
 ```bash
 $ python kowloon.py -d database_name
 ```
