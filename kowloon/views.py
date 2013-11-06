@@ -26,7 +26,11 @@ def index(request):
 def viewer(request, table):
     model = getattr(database_models, table)
 
-    qs = model.objects.all().geojson()
+    # You can pass in filters using GET like in the django admin. 
+    # so /?name=Compton on the neighborhoods table would give you just Compton.
+    filters = request.GET.dict()
+    qs = model.objects.all().filter(**filters).geojson()
+
     geojson = render_to_string("kowloon/geojson.json", {'object_list': qs})
 
     return render_to_response("kowloon/viewer.html", {

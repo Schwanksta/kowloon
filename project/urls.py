@@ -10,7 +10,7 @@ from kowloon.views import index, viewer
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', index, name='index'),
-    url(r'^viewer/(?P<table>[-\w]+)$', viewer, name='viewer'),
+    url(r'^viewer/(?P<table>[-\w]+)/$', viewer, name='viewer'),
 )
 
 if settings.DEBUG:
