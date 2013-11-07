@@ -65,9 +65,9 @@
             onEachFeature: function(feature, layer) {
                 if (feature.properties) {
                     var props = [];
-                    for(var key in feature.properties){
-                        props.push("<strong>" + key + "</strong>: " + feature.properties[key])
-                    }
+                    feature.properties.forEach(function(property){
+                        props.push("<strong>" + property[0] + "</strong>: " + property[1])
+                    });
                     layer.bindPopup(props.join("<br/>"));
                 }
             }

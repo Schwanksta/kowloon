@@ -24,10 +24,10 @@ def _get_model_name(self):
     return self._meta.object_name
 
 def _get_properties(self):
-    properties = {}
+    properties = []
     for field in self._meta.fields:
         if type(field) not in GEOM_FIELDS:
-            properties[field.name] = getattr(self, field.name)
+            properties.append((field.name, unicode(getattr(self, field.name))))
     return json.dumps(properties)
 
 KOWLOON_MODELS = {}
