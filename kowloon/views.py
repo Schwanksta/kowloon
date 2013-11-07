@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
-from kowloon.modelutils import _get_name, _get_model_name, _get_properties, monkey_patch_models
+from kowloon.modelutils import monkey_patch_models
 
 KOWLOON_MODELS = monkey_patch_models()
 
