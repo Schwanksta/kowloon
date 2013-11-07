@@ -5,12 +5,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import admin
 admin.autodiscover()
 
-from kowloon.views import index, viewer
+from kowloon.views import index, get_layer
 
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', index, name='index'),
-    url(r'^viewer/(?P<table>[-\w]+)/$', viewer, name='viewer'),
+    url(r'^getLayer/(?P<table>[-\w]+)/$', get_layer, name='get-layer'),
 )
 
 if settings.DEBUG:

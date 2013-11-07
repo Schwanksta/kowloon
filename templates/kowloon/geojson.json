@@ -1,1 +1,1 @@
-{"type": "FeatureCollection", "features": [{% for object in object_list %}{% if object.geojson %}{"geometry": {{ object.geojson|safe }}, "type": "Feature", "properties": {{ object.get_properties|safe }} }{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}]}
+{"type": "FeatureCollection", "extent": {{ extent }},"features": [{% for object in object_list %}{% if object.geojson %}{"geometry": {{ object.geojson|safe }}, "type": "Feature", "properties": {{ object.get_properties|safe }} }{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}]}

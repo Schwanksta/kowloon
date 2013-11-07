@@ -1,5 +1,98 @@
-<ul>
-{% for table in database_tables %}
-<li><a href="/viewer/{{ table.get_model_name }}">{{ table }}</a></li>
-{% endfor %}
-</ul>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
+    <![endif]-->
+
+    <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+    <style type="text/css">
+    html, body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outline:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+    /* APP */
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow:hidden;
+    }
+    #map-canvas {
+        width: 75%;
+        height: 100%;
+        position:absolute;
+    }
+    #map-tools {
+        width: 25%;
+        height: 100%;
+        right: 0px;
+        position:absolute;
+    }
+    </style>    
+</head>
+<body>
+    <div id="map-canvas"></div>
+    <div id="map-tools">
+        <ul>
+        {% for table in database_tables %}
+            <li>
+                <a class="layer" href="/getLayer/{{ table.get_model_name }}">{{ table }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <script type="text/javascript">
+        map = new L.map('map-canvas', {scrollWheelZoom: false, maxZoom:15, minZoom:9});
+
+
+        /* Google Tiles */
+        googleLayer = L.tileLayer("http://{s}.google.com/vt/?hl=en&x={x}&y={y}&z={z}&s={s}", {
+             attribution: "Map data: Copyright Google, 2013",
+             subdomains: ['mt0','mt1','mt2','mt3']
+        });
+        map.addLayer(googleLayer);
+       
+        var layers = [];
+
+        var addLayer = function(geojson) {
+            var layer = L.geoJson(geojson, {
+                pointToLayer: function(feature, latlng) { return new L.CircleMarker(latlng) },
+                style: function (feature) {
+                    var style =  {
+                        color: "#b00",
+                        weight: 2,
+                        fillColor: "#b00", 
+                        opacity: 0.5,
+                        fillOpacity: 0.3
+                    }
+                    if(feature.geometry.type == "Point") {
+                        style.radius = 3;
+                    }
+                    return style
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        var props = [];
+                        feature.properties.forEach(function(property){
+                            props.push("<strong>" + property[0] + "</strong>: " + property[1])
+                        });
+                        layer.bindPopup(props.join("<br/>"));
+                    }
+                }
+            }).addTo(map);
+
+            /* Zoom and extent */
+            map.fitBounds(geojson.extent)
+
+            layers.push(layer);
+        }
+
+        $("#map-tools a.layer").click(function(event) {
+            event.preventDefault();
+            $.getJSON($(this).attr('href'), function(data) {
+                addLayer(data);
+            })
+        });
+
+    </script>
+</body>
+

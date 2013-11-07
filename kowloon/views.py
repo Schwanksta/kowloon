@@ -1,5 +1,4 @@
 from django.shortcuts import render_to_response
-from django.template.loader import render_to_string
 from kowloon.modelutils import monkey_patch_models
 
 KOWLOON_MODELS = monkey_patch_models()
@@ -9,7 +8,7 @@ def index(request):
             'database_tables': sorted(KOWLOON_MODELS.values())
         })
 
-def viewer(request, table):
+def get_layer(request, table):
     model = KOWLOON_MODELS.get(table)
 
     # You can pass in filters using GET like in the django admin. 
@@ -17,10 +16,11 @@ def viewer(request, table):
     filters = request.GET.dict()
     qs = model.objects.all().filter(**filters).geojson()
 
-    geojson = render_to_string("kowloon/geojson.json", {'object_list': qs})
-
-    return render_to_response("kowloon/viewer.html", {
-            'geojson': geojson,
-            'extent': qs.extent()
-        })
+    qs_extent = qs.extent()
+    extent = [
+        [qs_extent[1], qs_extent[0]],
+        [qs_extent[3], qs_extent[2]],
+    ]
+     
+    return render_to_response("kowloon/geojson.json", {'object_list': qs, 'extent': extent}, content_type="text/json")
 
