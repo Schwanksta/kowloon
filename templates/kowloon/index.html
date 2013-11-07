@@ -32,13 +32,15 @@
 <body>
     <div id="map-canvas"></div>
     <div id="map-tools">
-        <ul>
-        {% for table in database_tables %}
-            <li>
-                <a class="layer" href="/getLayer/{{ table.get_model_name }}">{{ table }}</a>
-            </li>
-        {% endfor %}
-        </ul>
+        <form id="layerform">
+            <select id="layerselect">
+                <option value="none">Add layer</option>
+            {% for table in database_tables %}
+                <option value="/getLayer/{{ table.get_model_name }}">{{ table }}</a>
+            {% endfor %}
+            </select>
+            <button id="addlayer">Go</button>
+        </form>
     </div>
     <script type="text/javascript">
         map = new L.map('map-canvas', {scrollWheelZoom: false, maxZoom:15, minZoom:9});
@@ -50,9 +52,8 @@
              subdomains: ['mt0','mt1','mt2','mt3']
         });
         map.addLayer(googleLayer);
-       
+        map.setView([34,-118],7); 
         var layers = [];
-
         var addLayer = function(geojson) {
             var layer = L.geoJson(geojson, {
                 pointToLayer: function(feature, latlng) { return new L.CircleMarker(latlng) },
@@ -86,11 +87,14 @@
             layers.push(layer);
         }
 
-        $("#map-tools a.layer").click(function(event) {
+        $("#map-tools #addlayer").click(function(event) {
             event.preventDefault();
-            $.getJSON($(this).attr('href'), function(data) {
-                addLayer(data);
-            })
+            var url = $("#layerselect").val();
+            if(url != 'none') {
+                $.getJSON(url, function(data) {
+                    addLayer(data);
+                })
+            }
         });
 
     </script>
