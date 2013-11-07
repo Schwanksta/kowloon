@@ -35,12 +35,15 @@
         <form id="layerform">
             <select id="layerselect">
                 <option value="none">Add layer</option>
-            {% for table in database_tables %}
+                {% for table in database_tables %}
                 <option value="/getLayer/{{ table.get_model_name }}">{{ table }}</a>
-            {% endfor %}
+                {% endfor %}
             </select>
-            <button id="addlayer">Go</button>
+            <button id="addlayer">add</button>
         </form>
+        <ul id="currentlayers">
+    
+        </ul>
     </div>
     <script type="text/javascript">
         map = new L.map('map-canvas', {scrollWheelZoom: false, maxZoom:15, minZoom:9});
