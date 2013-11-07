@@ -10,8 +10,6 @@ def index(request):
         })
 
 def viewer(request, table):
-    print table
-    print KOWLOON_MODELS
     model = KOWLOON_MODELS.get(table)
 
     # You can pass in filters using GET like in the django admin. 
