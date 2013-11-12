@@ -1,13 +1,15 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+    <link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
     <!--[if lte IE 8]>
         <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
     <![endif]-->
 
-    <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
-    <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="//cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    <script src="//codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.0/backbone-min.js"></script>
     <style type="text/css">
     html, body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outline:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
     /* APP */
@@ -36,7 +38,7 @@
             <select id="layerselect">
                 <option value="none">Add layer</option>
                 {% for table in database_tables %}
-                <option value="/getLayer/{{ table.get_model_name }}">{{ table }}</a>
+                <option value="{{ table.get_model_name }}">{{ table }}</a>
                 {% endfor %}
             </select>
             <button id="addlayer">add</button>
@@ -46,7 +48,71 @@
         </ul>
     </div>
     <script type="text/javascript">
+
         map = new L.map('map-canvas', {scrollWheelZoom: false, maxZoom:15, minZoom:9});
+
+        var LayerModel = Backbone.Model.extend({
+            urlRoot: '/getLayer',
+            defaults: {
+                geojson: '',
+                map: map,
+                layer: null
+            },
+            initialize: function(){
+                // Here we're relying on the fact that calling
+                // fetch() will auto fill the `geojson` property of this
+                // instance, instantly triggering the following method.
+                this.on("change:geojson", function(model){
+                    model.addToMap();
+                    model.showOnMap();
+                });
+            },
+            hideFromMap: function() {
+                this.get('map').removeLayer(this.get('layer'));
+                return this;
+            },
+            showOnMap: function() {
+                this.get('map').addLayer(this.get('layer'));
+                return this;
+            },
+            addToMap: function() {
+                var layer = L.geoJson(this.get('geojson'), {
+                    pointToLayer: function(feature, latlng) { return new L.CircleMarker(latlng) },
+                    style: function (feature) {
+                        var style =  {
+                            color: "#b00",
+                            weight: 2,
+                            fillColor: "#b00", 
+                            opacity: 0.5,
+                            fillOpacity: 0.3
+                        }
+                        if(feature.geometry.type == "Point") {
+                            style.radius = 3;
+                        }
+                        return style
+                    },
+                    onEachFeature: function(feature, layer) {
+                        if (feature.properties) {
+                            // Bind a key: value string for each property of
+                            // every feature in the layer.
+                            var props = [];
+                            feature.properties.forEach(function(property){
+                                props.push("<strong>" + property[0] + "</strong>: " + property[1])
+                            });
+                            layer.bindPopup(props.join("<br/>"));
+                        }
+                    }
+                });
+
+                this.set({layer: layer});
+
+                // Zoom and extent
+                this.get('map').fitBounds(this.get('geojson').extent)
+
+                return this;
+            }
+
+        });
 
 
         /* Google Tiles */
@@ -57,46 +123,15 @@
         map.addLayer(googleLayer);
         map.setView([34,-118],7); 
         var layers = [];
-        var addLayer = function(geojson) {
-            var layer = L.geoJson(geojson, {
-                pointToLayer: function(feature, latlng) { return new L.CircleMarker(latlng) },
-                style: function (feature) {
-                    var style =  {
-                        color: "#b00",
-                        weight: 2,
-                        fillColor: "#b00", 
-                        opacity: 0.5,
-                        fillOpacity: 0.3
-                    }
-                    if(feature.geometry.type == "Point") {
-                        style.radius = 3;
-                    }
-                    return style
-                },
-                onEachFeature: function(feature, layer) {
-                    if (feature.properties) {
-                        var props = [];
-                        feature.properties.forEach(function(property){
-                            props.push("<strong>" + property[0] + "</strong>: " + property[1])
-                        });
-                        layer.bindPopup(props.join("<br/>"));
-                    }
-                }
-            }).addTo(map);
-
-            /* Zoom and extent */
-            map.fitBounds(geojson.extent)
-
-            layers.push(layer);
-        }
+        
 
         $("#map-tools #addlayer").click(function(event) {
             event.preventDefault();
-            var url = $("#layerselect").val();
-            if(url != 'none') {
-                $.getJSON(url, function(data) {
-                    addLayer(data);
-                })
+            var name = $("#layerselect").val();
+            if(name != 'none') {
+                var layer = new LayerModel({id: name});
+                layer.fetch();
+                layers.push(layer);
             }
         });
 
