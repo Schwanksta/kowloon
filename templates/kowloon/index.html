@@ -75,6 +75,10 @@
                 this.get('map').addLayer(this.get('layer'));
                 return this;
             },
+            fitBounds: function() {
+                // Zoom and extent
+                this.get('map').fitBounds(this.get('geojson').extent)
+            }
             addToMap: function() {
                 var layer = L.geoJson(this.get('geojson'), {
                     pointToLayer: function(feature, latlng) { return new L.CircleMarker(latlng) },
@@ -106,8 +110,7 @@
 
                 this.set({layer: layer});
 
-                // Zoom and extent
-                this.get('map').fitBounds(this.get('geojson').extent)
+                this.fitBounds();
 
                 return this;
             }
