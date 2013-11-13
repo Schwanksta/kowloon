@@ -78,7 +78,7 @@
             fitBounds: function() {
                 // Zoom and extent
                 this.get('map').fitBounds(this.get('geojson').extent)
-            }
+            },
             addToMap: function() {
                 var layer = L.geoJson(this.get('geojson'), {
                     pointToLayer: function(feature, latlng) { return new L.CircleMarker(latlng) },
@@ -104,6 +104,19 @@
                                 props.push("<strong>" + property[0] + "</strong>: " + property[1])
                             });
                             layer.bindPopup(props.join("<br/>"));
+                            layer.on('popupopen', function(e) {
+                                e.target.setStyle({
+                                    color: "#00b",
+                                    fillColor: "#00b"
+                                });
+
+                            });
+                            layer.on('popupclose', function(e) {
+                                e.target.setStyle({
+                                    color: "#b00",
+                                    fillColor: "#b00"
+                                });
+                            });
                         }
                     }
                 });
