@@ -29,6 +29,15 @@
         right: 0px;
         position:absolute;
     }
+    #currentlayers li.layer {
+        padding:5px;
+        cursor: pointer;
+        border-bottom: 1px solid #00b;
+    }
+    #currentlayers li.layer.hidden {
+        background: #ccc;
+        color: #666;
+    }
     </style>    
 </head>
 <body>
@@ -125,6 +134,7 @@
         var LayerView = Backbone.View.extend({
             root: $("#currentlayers"),
             tagName : "li",
+            className: "layer",
             initialize: function(options) {
                 // Here we're relying on the fact that calling
                 // fetch() will auto fill the `geojson` property of this
@@ -138,6 +148,7 @@
                         this.model.showOnMap();
                         this.hidden = false;
                     }
+                    this.$el.toggleClass("hidden");
                 }, this));
             },
             render: function() {
