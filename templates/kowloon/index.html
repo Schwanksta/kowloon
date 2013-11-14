@@ -51,21 +51,12 @@
 
         map = new L.map('map-canvas', {scrollWheelZoom: false, maxZoom:15, minZoom:9});
 
-        var LayerModel = Backbone.Model.extend({
+        var Layer = Backbone.Model.extend({
             urlRoot: '/getLayer',
             defaults: {
                 geojson: '',
                 map: map,
                 layer: null
-            },
-            initialize: function(){
-                // Here we're relying on the fact that calling
-                // fetch() will auto fill the `geojson` property of this
-                // instance, instantly triggering the following method.
-                this.on("change:geojson", function(model){
-                    model.addToMap();
-                    model.showOnMap();
-                });
             },
             hideFromMap: function() {
                 this.get('map').removeLayer(this.get('layer'));
@@ -130,6 +121,35 @@
 
         });
 
+        var LayerView = Backbone.View.extend({
+            el: $("#currentlayers"),
+            template: _.template("<li><%= id %></li>"),
+            initialize: function(options) {
+                // Here we're relying on the fact that calling
+                // fetch() will auto fill the `geojson` property of this
+                // instance, instantly triggering the following method.
+                this.model.bind("change:geojson", _.bind(this.render, this));
+            },
+            render: function() {
+                this.model.addToMap();
+                this.model.showOnMap();
+                this.$el.append(this.template(this.model.attributes));
+                return this;
+            }
+        });
+
+        var LayerCollection = Backbone.Collection.extend({
+            model: Layer,
+            initialize: function() {
+                this.bind('add', function(layer){
+                    // fetch() will load in `geojson` and then fire
+                    // the change event.
+                    layer.fetch();
+                    // Then we insantiate a view for the layer and render it.
+                    new LayerView({ model: layer }).render();
+                });
+            }
+        });
 
         /* Google Tiles */
         googleLayer = L.tileLayer("http://{s}.google.com/vt/?hl=en&x={x}&y={y}&z={z}&s={s}", {
@@ -138,16 +158,14 @@
         });
         map.addLayer(googleLayer);
         map.setView([34,-118],7); 
-        var layers = [];
-        
+
+        var map_layers = new LayerCollection();
 
         $("#map-tools #addlayer").click(function(event) {
             event.preventDefault();
             var name = $("#layerselect").val();
             if(name != 'none') {
-                var layer = new LayerModel({id: name});
-                layer.fetch();
-                layers.push(layer);
+                map_layers.add(new Layer({ id: name }));
             }
         });
 
