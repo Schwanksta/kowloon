@@ -43,9 +43,7 @@
             </select>
             <button id="addlayer">add</button>
         </form>
-        <ul id="currentlayers">
-    
-        </ul>
+        <ul id="currentlayers"></ul>
     </div>
     <script type="text/javascript">
 
@@ -56,7 +54,8 @@
             defaults: {
                 geojson: '',
                 map: map,
-                layer: null
+                layer: null,
+                hidden: false
             },
             hideFromMap: function() {
                 this.get('map').removeLayer(this.get('layer'));
@@ -124,16 +123,26 @@
         });
 
         var LayerView = Backbone.View.extend({
-            el: $("#currentlayers"),
-            tagName: "li",
+            root: $("#currentlayers"),
+            tagName : "li",
             initialize: function(options) {
                 // Here we're relying on the fact that calling
                 // fetch() will auto fill the `geojson` property of this
                 // model instance, instantly triggering the following method.
                 this.model.bind("change:geojson", _.bind(this.render, this));
+                this.$el.on('click', _.bind(function(e) {
+                    if(!this.hidden) {
+                        this.model.hideFromMap();
+                        this.hidden = true;
+                    } else {
+                        this.model.showOnMap();
+                        this.hidden = false;
+                    }
+                }, this));
             },
             render: function() {
                 this.el.innerHTML = this.model.id;
+                this.root.append(this.el);
                 this.model.addToMap();
                 this.model.showOnMap();
                 return this;
