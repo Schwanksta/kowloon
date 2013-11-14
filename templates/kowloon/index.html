@@ -72,7 +72,9 @@
             },
             addToMap: function() {
                 var layer = L.geoJson(this.get('geojson'), {
-                    pointToLayer: function(feature, latlng) { return new L.CircleMarker(latlng) },
+                    pointToLayer: function(feature, latlng) {
+                        return new L.CircleMarker(latlng);
+                    },
                     style: function (feature) {
                         var style =  {
                             color: "#b00",
@@ -123,17 +125,17 @@
 
         var LayerView = Backbone.View.extend({
             el: $("#currentlayers"),
-            template: _.template("<li><%= id %></li>"),
+            tagName: "li",
             initialize: function(options) {
                 // Here we're relying on the fact that calling
                 // fetch() will auto fill the `geojson` property of this
-                // instance, instantly triggering the following method.
+                // model instance, instantly triggering the following method.
                 this.model.bind("change:geojson", _.bind(this.render, this));
             },
             render: function() {
+                this.el.innerHTML = this.model.id;
                 this.model.addToMap();
                 this.model.showOnMap();
-                this.$el.append(this.template(this.model.attributes));
                 return this;
             }
         });
@@ -152,7 +154,7 @@
         });
 
         /* Google Tiles */
-        googleLayer = L.tileLayer("http://{s}.google.com/vt/?hl=en&x={x}&y={y}&z={z}&s={s}", {
+        var googleLayer = L.tileLayer("http://{s}.google.com/vt/?hl=en&x={x}&y={y}&z={z}&s={s}", {
              attribution: "Map data: Copyright Google, 2013",
              subdomains: ['mt0','mt1','mt2','mt3']
         });
