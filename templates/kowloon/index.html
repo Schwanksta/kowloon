@@ -160,6 +160,8 @@
             className: "layer",
             rendered: false,
             initialize: function(options) {
+                // Start with a spinner.
+                this.$el.append(spinner.spin().el);
                 // We only have to append this element
                 // to the container once.
                 this.root.append(this.el);
@@ -179,13 +181,12 @@
                 }, this));
             },
             render: function() {
+                spinner.stop();
                 this.el.innerHTML = this.model.id;
-                this.$el.append(spinner.spin().el);
                 if(!this.rendered) {
                     this.model.addToMap();
                     this.model.showOnMap();
                 }
-                spinner.stop();
                 this.rendered = true;
                 return this;
             }
@@ -195,11 +196,11 @@
             model: Layer,
             initialize: function() {
                 this.bind('add', function(layer){
-                    // fetch() will load in `geojson` and then fire
-                    // the change event.
+                    // bind our layer to a view.
+                    new LayerView({ model: layer })
+                    // Then fetch() will load in `geojson` and then fire
+                    // the change event, which triggers a render.
                     layer.fetch();
-                    // Then we insantiate a view for the layer and render it.
-                    new LayerView({ model: layer }).render();
                 });
             }
         });
