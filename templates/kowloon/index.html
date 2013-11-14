@@ -58,25 +58,25 @@
     </div>
     <script type="text/javascript">
 
-var spinOpts = {
-  lines: 11, // The number of lines to draw
-  length: 9, // The length of each line
-  width: 2, // The line thickness
-  radius: 0, // The radius of the inner circle
-  corners: 1, // Corner roundness (0..1)
-  rotate: 0, // The rotation offset
-  direction: 1, // 1: clockwise, -1: counterclockwise
-  color: '#000', // #rgb or #rrggbb or array of colors
-  speed: 1, // Rounds per second
-  trail: 60, // Afterglow percentage
-  shadow: false, // Whether to render a shadow
-  hwaccel: false, // Whether to use hardware acceleration
-  className: 'spinner', // The CSS class to assign to the spinner
-  zIndex: 2e9, // The z-index (defaults to 2000000000)
-  top: 'auto', // Top position relative to parent in px
-  left: 'auto' // Left position relative to parent in px
-};
-        var spinner = new Spinner(spinOpts).spin();
+        var spinOpts = {
+          lines: 11, // The number of lines to draw
+          length: 9, // The length of each line
+          width: 2, // The line thickness
+          radius: 0, // The radius of the inner circle
+          corners: 1, // Corner roundness (0..1)
+          rotate: 0, // The rotation offset
+          direction: 1, // 1: clockwise, -1: counterclockwise
+          color: '#000', // #rgb or #rrggbb or array of colors
+          speed: 1, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: false, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: 'auto', // Top position relative to parent in px
+          left: 'auto' // Left position relative to parent in px
+        };
+        var spinner = new Spinner(spinOpts);
 
         map = new L.map('map-canvas', {scrollWheelZoom: false, maxZoom:15, minZoom:9});
 
@@ -99,6 +99,7 @@ var spinOpts = {
             fitBounds: function() {
                 // Zoom and extent
                 this.get('map').fitBounds(this.get('geojson').extent)
+                return this;
             },
             addToMap: function() {
                 var layer = L.geoJson(this.get('geojson'), {
@@ -157,7 +158,11 @@ var spinOpts = {
             root: $("#currentlayers"),
             tagName : "li",
             className: "layer",
+            rendered: false,
             initialize: function(options) {
+                // We only have to append this element
+                // to the container once.
+                this.root.append(this.el);
                 // Here we're relying on the fact that calling
                 // fetch() will auto fill the `geojson` property of this
                 // model instance, instantly triggering the following method.
@@ -176,10 +181,12 @@ var spinOpts = {
             render: function() {
                 this.el.innerHTML = this.model.id;
                 this.$el.append(spinner.spin().el);
-                this.root.append(this.el);
-                this.model.addToMap();
-                this.model.showOnMap();
+                if(!this.rendered) {
+                    this.model.addToMap();
+                    this.model.showOnMap();
+                }
                 spinner.stop();
+                this.rendered = true;
                 return this;
             }
         });
