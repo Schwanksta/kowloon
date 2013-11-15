@@ -112,7 +112,7 @@
                             url = urlTemplate({poly: this, points: layer})
                         break;
                 } 
-                map_layers.add(new Layer({ url: url }));
+                map_layers.add(new Layer({ id: this.id + '_' + layer.id + '_count', url: url }));
             },
             hideFromMap: function() {
                 this.get('map').removeLayer(this.get('layer'));
