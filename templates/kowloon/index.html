@@ -7,7 +7,7 @@
     <![endif]-->
 
     <script src="//cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
-    <script src="//codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.0/backbone-min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/spin.js/1.3.2/spin.min.js"></script>
@@ -59,22 +59,22 @@
     <script type="text/javascript">
 
         var spinOpts = {
-          lines: 11, // The number of lines to draw
-          length: 9, // The length of each line
-          width: 2, // The line thickness
-          radius: 0, // The radius of the inner circle
-          corners: 1, // Corner roundness (0..1)
-          rotate: 0, // The rotation offset
-          direction: 1, // 1: clockwise, -1: counterclockwise
-          color: '#000', // #rgb or #rrggbb or array of colors
-          speed: 1, // Rounds per second
-          trail: 60, // Afterglow percentage
-          shadow: false, // Whether to render a shadow
-          hwaccel: false, // Whether to use hardware acceleration
-          className: 'spinner', // The CSS class to assign to the spinner
-          zIndex: 2e9, // The z-index (defaults to 2000000000)
-          top: 'auto', // Top position relative to parent in px
-          left: 'auto' // Left position relative to parent in px
+            lines: 11, // The number of lines to draw
+            length: 9, // The length of each line
+            width: 2, // The line thickness
+            radius: 0, // The radius of the inner circle
+            corners: 1, // Corner roundness (0..1)
+            rotate: 0, // The rotation offset
+            direction: 1, // 1: clockwise, -1: counterclockwise
+            color: '#000', // #rgb or #rrggbb or array of colors
+            speed: 1, // Rounds per second
+            trail: 60, // Afterglow percentage
+            shadow: false, // Whether to render a shadow
+            hwaccel: false, // Whether to use hardware acceleration
+            className: 'spinner', // The CSS class to assign to the spinner
+            zIndex: 2e9, // The z-index (defaults to 2000000000)
+            top: 'auto', // Top position relative to parent in px
+            left: 'auto' // Left position relative to parent in px
         };
         var spinner = new Spinner(spinOpts);
 
@@ -82,11 +82,37 @@
 
         var Layer = Backbone.Model.extend({
             urlRoot: '/getLayer',
+            url: function() {
+                if(!this.get('url')) {
+                    var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url') || urlError();
+                    if (this.isNew()) return base;
+                    return base + (base.charAt(base.length - 1) === '/' ? '' : '/') + encodeURIComponent(this.id);
+                } else {
+                    return this.get('url');
+                }
+            },
             defaults: {
                 geojson: '',
                 map: map,
                 layer: null,
-                hidden: false
+                type: null,
+                hidden: false,
+                url: null
+            },
+            pointsInPolygon: function(layer) {
+                var urlTemplate = _.template('/pointsInPolygon/<%= poly.id %>/<%= points.id %>/');
+                var url = "";
+                switch(this.get("type")){
+                    case "point":
+                        if(layer.get("type") == "path")
+                            url = urlTemplate({poly: layer, points: this})
+                        break;
+                    case "path":
+                        if(layer.get("type") == "point")
+                            url = urlTemplate({poly: this, points: layer})
+                        break;
+                } 
+                map_layers.add(new Layer({ url: url }));
             },
             hideFromMap: function() {
                 this.get('map').removeLayer(this.get('layer'));
@@ -106,7 +132,7 @@
                     pointToLayer: function(feature, latlng) {
                         return new L.CircleMarker(latlng);
                     },
-                    style: function (feature) {
+                    style: _.bind(function (feature) {
                         var style =  {
                             color: "#b00",
                             weight: 2,
@@ -115,10 +141,13 @@
                             fillOpacity: 0.3
                         }
                         if(feature.geometry.type == "Point") {
+                            this.set("type", "point");
                             style.radius = 3;
+                        } else {
+                            this.set("type", "path")
                         }
                         return style
-                    },
+                    }, this),
                     onEachFeature: function(feature, layer) {
                         if (feature.properties) {
                             // Bind a key: value string for each property of

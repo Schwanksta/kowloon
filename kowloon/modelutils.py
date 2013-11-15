@@ -23,10 +23,14 @@ def _get_model_name(self):
 
 def _get_properties(self):
     properties = []
-    for field in self._meta.fields:
-        if type(field) not in GEOM_FIELDS:
-            properties.append((field.name, unicode(getattr(self, field.name))))
+    for field in self.__dict__.keys():
+        # Geom fields all have geom_type
+        if not getattr(getattr(self, field), 'geom_type', None) and field != 'geojson':
+            properties.append((field, unicode(getattr(self, field))))
     return json.dumps(properties)
+
+def _get_geom_fields(self):
+    return [field for field in self._meta.fields if type(field) in GEOM_FIELDS]
 
 def monkey_patch_models():
     models = {} 
@@ -35,5 +39,6 @@ def monkey_patch_models():
             model.__str__ = _get_name
             model.get_model_name = _get_model_name
             model.get_properties = _get_properties
+            model.get_geom_fields = _get_geom_fields
             models[model.__name__] = model
     return models

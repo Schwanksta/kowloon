@@ -5,12 +5,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import admin
 admin.autodiscover()
 
-from kowloon.views import index, get_layer
+from kowloon.views import *
 
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', index, name='index'),
     url(r'^getLayer/(?P<table>[-\w]+)/$', get_layer, name='get-layer'),
+    url(r'^pointsInPolygon/(?P<poly_table>[-\w]+)/(?P<point_table>[-\w]+)/$', points_in_polygon, name='points-in-polygon'),
 )
 
 if settings.DEBUG:
