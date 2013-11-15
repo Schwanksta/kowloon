@@ -25,7 +25,7 @@ def _get_properties(self):
     properties = []
     for field in self.__dict__.keys():
         # Geom fields all have geom_type
-        if not getattr(getattr(self, field), 'geom_type', None) and field != 'geojson':
+        if not getattr(getattr(self, field), 'geom_type', None) and not field in ('geojson', '_state'):
             properties.append((field, unicode(getattr(self, field))))
     return json.dumps(properties)
 
