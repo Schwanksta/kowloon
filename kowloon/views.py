@@ -25,7 +25,7 @@ def get_layer(request, table):
     return render_to_response("kowloon/geojson.json", {'object_list': qs, 'extent': extent}, content_type="text/json")
 
 
-def points_in_polygon(request, poly_table, point_table):
+def spatial_calc(request, poly_table, point_table, operation="count", field="*"):
     poly_model = KOWLOON_MODELS.get(poly_table)
     point_model = KOWLOON_MODELS.get(point_table)
 
@@ -37,17 +37,24 @@ def points_in_polygon(request, poly_table, point_table):
     point_field = point_model.objects.all()[0].get_geom_fields()[0].name
 
     query = """
-    SELECT COUNT(*) FROM %(point_table)s WHERE ST_Contains(%(poly_table)s.%(poly_field)s, %(point_table)s.%(point_field)s)
+    SELECT %(operation)s(%(field)s) FROM %(point_table)s WHERE ST_Contains(%(poly_table)s.%(poly_field)s, %(point_table)s.%(point_field)s)
     """ % {
+        'operation': operation,
+        'field': field,
         'point_table': point_table_name,
         'poly_table': poly_table_name,
         'poly_field': poly_field,
         'point_field': point_field,
     }
 
+    if field != '*':
+        new_field = '%s_%s' % (field, operation)
+    else:
+        new_field = '%s_%s' % (point_table_name, operation)
+
     qs = poly_model.objects.extra(
         select = {
-            'point_count': query
+            new_field: query
         }
     ).geojson()
 

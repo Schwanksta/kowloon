@@ -99,17 +99,17 @@
                 hidden: false,
                 url: null
             },
-            pointsInPolygon: function(layer) {
-                var urlTemplate = _.template('/pointsInPolygon/<%= poly.id %>/<%= points.id %>/');
+            spatialCalc: function(layer, operation, field) {
+                var urlTemplate = _.template('/spatialCalc/<%= poly.id %>/<%= points.id %>/<%= operation %>/<%= field %>/');
                 var url = "";
                 switch(this.get("type")){
                     case "point":
                         if(layer.get("type") == "path")
-                            url = urlTemplate({poly: layer, points: this})
+                            url = urlTemplate({poly: layer, points: this, operation: operation, field: field})
                         break;
                     case "path":
                         if(layer.get("type") == "point")
-                            url = urlTemplate({poly: this, points: layer})
+                            url = urlTemplate({poly: this, points: layer, operation: operation, field: field})
                         break;
                 } 
                 map_layers.add(new Layer({ id: this.id + '_' + layer.id + '_count', url: url }));
