@@ -31,7 +31,7 @@ def spatial_calc(request, poly_table, point_table, operation="count", field="*")
     a new polygon layer with a field that is the result of that calculation.
     For example, a call to:
         /spatialCalc/Neighborhoods/Homicides/avg/age/
-    returns a Neighborhood layer with an avg_age field containing the average age
+    returns a Neighborhood layer with an age_avg field containing the average age
     for all of the homicides within each neighborhood.
     """
     poly_model = KOWLOON_MODELS.get(poly_table)
