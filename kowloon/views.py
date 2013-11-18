@@ -26,6 +26,14 @@ def get_layer(request, table):
 
 
 def spatial_calc(request, poly_table, point_table, operation="count", field="*"):
+    """
+    Takes a polygon table, a point table, an operation and a field, and returns
+    a new polygon layer with a field that is the result of that calculation.
+    For example, a call to:
+        /spatialCalc/Neighborhoods/Homicides/avg/age/
+    returns a Neighborhood layer with an avg_age field containing the average age
+    for all of the homicides within each neighborhood.
+    """
     poly_model = KOWLOON_MODELS.get(poly_table)
     point_model = KOWLOON_MODELS.get(point_table)
 
@@ -52,11 +60,7 @@ def spatial_calc(request, poly_table, point_table, operation="count", field="*")
     else:
         new_field = '%s_%s' % (point_table_name, operation)
 
-    qs = poly_model.objects.extra(
-        select = {
-            new_field: query
-        }
-    ).geojson()
+    qs = poly_model.objects.extra(select = { new_field: query }).geojson()
 
     qs_extent = qs.extent()
     extent = [
