@@ -11,7 +11,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', index, name='index'),
     url(r'^getLayer/(?P<table>[-\w]+)/$', get_layer, name='get-layer'),
-    url(r'^spatialCalc/(?P<poly_table>[-\w]+)/(?P<point_table>[-\w]+)/(?P<operation>avg|count|max|min|sum)/(?P<field>[-:*\w]+)/$', spatial_calc, name='spatial-calc'),
+    url(r'^spatialCalc/(?P<poly_table>[-\w]+)/(?P<point_table>[-\w]+)/(?P<operation>avg|count|max|min|sum|stddev)/(?P<field>[-:*\w]+)/$', spatial_calc, name='spatial-calc'),
 )
 
 if settings.DEBUG:
