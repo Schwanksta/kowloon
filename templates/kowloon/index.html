@@ -226,10 +226,13 @@
                 // fetch() will auto fill the `geojson` property of this
                 // model instance, instantly triggering the following method.
                 this.model.bind("change:geojson", _.bind(this.render, this));
+                // When we hide a layer, gray out its representation in the list.
                 this.model.bind("change:hidden", _.bind(function(e) {
                     this.$el.toggleClass("hidden");
                 }, this));
+                // Toolbar.
                 this.$el.append(this.toolsTemplate);
+                // Bind the view button to toggleVisibility.
                 $(".view", this.$el).on('click', _.bind(function(e) {
                     this.model.toggleVisibilty();
                 }, this));
