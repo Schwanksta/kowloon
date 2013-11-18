@@ -33,12 +33,17 @@
     }
     #currentlayers li.layer {
         padding:5px;
-        cursor: pointer;
         border-bottom: 1px solid black;
     }
     #currentlayers li.layer.hidden {
         background: #ccc;
         color: #666;
+    }
+    li.layer ul li{
+        cursor: pointer;
+        display: inline;
+        border: 1px solid black;
+        padding: 0px 2px;
     }
     </style>    
 </head>
@@ -56,6 +61,13 @@
         </form>
         <ul id="currentlayers"></ul>
     </div>
+    <script id="tool-template" type="text/template">
+        <ul>
+            <li class="calc">c</li>
+            <li class="view">v</li>
+            <li class="save">s</li>
+        </ul>
+    </script>
     <script type="text/javascript">
 
         var spinOpts = {
@@ -121,10 +133,20 @@
             },
             hideFromMap: function() {
                 this.get('map').removeLayer(this.get('layer'));
+                this.set('hidden', true);
                 return this;
             },
             showOnMap: function() {
                 this.get('map').addLayer(this.get('layer'));
+                this.set('hidden', false);
+                return this;
+            },
+            toggleVisibilty: function() {
+                if(!this.get('hidden')) {
+                    this.hideFromMap();
+                } else {
+                    this.showOnMap();
+                }
                 return this;
             },
             fitBounds: function() {
@@ -193,6 +215,7 @@
             tagName : "li",
             className: "layer",
             rendered: false,
+            toolsTemplate: $("#tool-template").html(),
             initialize: function(options) {
                 // Start with a spinner.
                 this.$el.append(spinner.spin().el);
@@ -203,20 +226,17 @@
                 // fetch() will auto fill the `geojson` property of this
                 // model instance, instantly triggering the following method.
                 this.model.bind("change:geojson", _.bind(this.render, this));
-                this.$el.on('click', _.bind(function(e) {
-                    if(!this.hidden) {
-                        this.model.hideFromMap();
-                        this.hidden = true;
-                    } else {
-                        this.model.showOnMap();
-                        this.hidden = false;
-                    }
+                this.model.bind("change:hidden", _.bind(function(e) {
                     this.$el.toggleClass("hidden");
+                }, this));
+                this.$el.append(this.toolsTemplate);
+                $(".view", this.$el).on('click', _.bind(function(e) {
+                    this.model.toggleVisibilty();
                 }, this));
             },
             render: function() {
                 spinner.stop();
-                this.el.innerHTML = this.model.id;
+                this.$el.append(this.model.id);
                 if(!this.rendered) {
                     this.model.addToMap();
                     this.model.showOnMap();
