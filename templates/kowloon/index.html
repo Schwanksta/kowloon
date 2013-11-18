@@ -100,6 +100,9 @@
                 url: null
             },
             spatialCalc: function(layer, operation, field) {
+                /*
+                * Returns a new layer based on the options you pass in.
+                */
                 var urlTemplate = _.template('/spatialCalc/<%= poly.id %>/<%= points.id %>/<%= operation %>/<%= field %>/');
                 var url = "";
                 switch(this.get("type")){
@@ -112,7 +115,9 @@
                             url = urlTemplate({poly: this, points: layer, operation: operation, field: field})
                         break;
                 } 
-                map_layers.add(new Layer({ id: this.id + '_' + layer.id + '_count', url: url }));
+                var newLayer = new Layer({ id: this.id + '_' + layer.id + '_' + operation, url: url })
+                map_layers.add(newLayer);
+                return newLayer;
             },
             hideFromMap: function() {
                 this.get('map').removeLayer(this.get('layer'));
