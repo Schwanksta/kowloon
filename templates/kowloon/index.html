@@ -2,6 +2,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+    <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <!--[if lte IE 8]>
         <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
     <![endif]-->
@@ -10,8 +11,10 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.0/backbone-min.js"></script>
-    <script src="/static/js/FileSaver.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/spin.js/1.3.2/spin.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/FileSaver.js"></script>
+    <script src="/static/js/simple_statistics.js"></script>
     <style type="text/css">
     html, body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outline:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
     /* APP */
@@ -21,13 +24,11 @@
         overflow:hidden;
     }
     #map-canvas {
-        width: 75%;
+        width: 100%;
         height: 100%;
         position:absolute;
     }
     #map-tools {
-        width: 25%;
-        height: 100%;
         right: 0px;
         position:absolute;
         font-family: Helvetica,Arial,sans-serif;
@@ -35,8 +36,10 @@
     #currentlayers li.layer {
         padding:5px;
         border-bottom: 1px solid black;
+        border-left: 1px solid black;
+        background: #fff;
     }
-    #currentlayers li.layer.hidden {
+    #currentlayers li.layer.layer-hidden {
         background: #ccc;
         color: #666;
     }
@@ -62,6 +65,36 @@
         </form>
         <ul id="currentlayers"></ul>
     </div>
+
+    <div id="spatial-calc-modal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Spatial Calculator</h4>
+          </div>
+          <div class="modal-body">
+            Contains
+            <select class="layer-list"></select>
+            and calculate the
+            <select class="operation-list">
+                <option value="avg">average</option>
+                <option value="count">count</option>
+                <option value="max">max</option>
+                <option value="min">min</option>
+                <option value="sum">sum</option>
+                <option value="stddev">Std. Deviation</option>
+            </select>
+            of the field
+            <select class="field-list"></select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="go btn btn-primary">Go</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
     <script id="tool-template" type="text/template">
         <ul>
             <li class="calc">c</li>
@@ -118,6 +151,7 @@
                 saveAs(blob, this.id + ".geojson");
             },
             spatialCalc: function(layer, operation, field) {
+                console.log(this);
                 /*
                 * Returns a new layer based on the options you pass in.
                 */
@@ -218,9 +252,11 @@
 
         var LayerView = Backbone.View.extend({
             root: $("#currentlayers"),
+            $scm: $('#spatial-calc-modal'),
             tagName : "li",
             className: "layer",
             rendered: false,
+            optionTemplate: _.template("<option value=\"<%= val %>\"><%= name %></option"),
             toolsTemplate: $("#tool-template").html(),
             initialize: function(options) {
                 // Start with a spinner.
@@ -234,7 +270,7 @@
                 this.model.bind("change:geojson", _.bind(this.render, this));
                 // When we hide a layer, gray out its representation in the list.
                 this.model.bind("change:hidden", _.bind(function(e) {
-                    this.$el.toggleClass("hidden");
+                    this.$el.toggleClass("layer-hidden");
                 }, this));
                 // Toolbar.
                 this.$el.append(this.toolsTemplate);
@@ -242,8 +278,54 @@
                 $(".view", this.$el).on('click', _.bind(function(e) {
                     this.model.toggleVisibilty();
                 }, this));
+                // And our save button to download
                 $(".save", this.$el).on('click', _.bind(function(e) {
                     this.model.downloadGeoJson();
+                }, this));
+                // Spatial calc dialog
+                $(".calc", this.$el).on('click', _.bind(function(e) {
+                    var $layerlist = $(".layer-list", this.$scm);
+                    var $fieldlist = $(".field-list", this.$scm);
+                    //Clear the lists, in case we have new layers.
+                    $layerlist.html("");
+                    $fieldlist.html("");
+                    $layerlist.change(_.bind(function(e) {
+                        $fieldlist.html("");
+                        var layer = $(e.currentTarget).val();
+                        var model = map_layers.get(layer);
+                        var props = model.attributes.geojson.features[0].properties;
+                        // Add all of the properties we can choose from the layer
+                        // we've selected.
+                        _.each(props, _.bind(function(prop) {
+                            $fieldlist.append(
+                                this.optionTemplate({val: prop[0], name: prop[0]})
+                            )
+                        },this));
+                        
+                    }, this));
+                    // Add all of the layers that aren't the current layer to the
+                    // options for spatial calculation.
+                    map_layers.forEach(_.bind(function(layer) {
+                        if(layer.id !== this.model.id) {
+                            $layerlist.append(
+                                this.optionTemplate({val: layer.id, name: layer.id})
+                            )
+                        }
+                    }, this));
+                    // trigger an immediate change so we get the field options
+                    // for the initial model in the layerlist.
+                    $layerlist.change();
+                    this.$scm.modal();
+                }, this));
+                $(".go", this.$scm).on('click', _.bind(function(e) {
+                    console.log("!!!");
+                    // We're going to force-cast everything to float for now.
+                    var field = $(".field-list", this.$scm).val() + "::float";
+                    var layer = $(".layer-list", this.$scm).val();
+                    var operation = $(".operation-list", this.$scm).val();
+                    //  Run the calculation, which should create a new layer
+                    // and add it to the map automagically.
+                    this.model.spatialCalc(map_layers.get(layer), operation, field);
                 }, this));
             },
             render: function() {

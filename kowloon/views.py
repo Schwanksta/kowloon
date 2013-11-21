@@ -56,7 +56,7 @@ def spatial_calc(request, poly_table, point_table, operation="count", field="*")
     }
 
     if field != '*':
-        new_field = '%s_%s' % (field, operation)
+        new_field = '%s_%s' % (field.replace("::", "_"), operation)
     else:
         new_field = '%s_%s' % (point_table_name, operation)
 
