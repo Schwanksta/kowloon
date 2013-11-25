@@ -220,8 +220,8 @@
                             // Bind a key: value string for each property of
                             // every feature in the layer.
                             var props = [];
-                            feature.properties.forEach(function(property){
-                                props.push("<strong>" + property[0] + "</strong>: " + property[1])
+                            _.each(feature.properties, function(v,k){
+                                props.push("<strong>" + k + "</strong>: " + v)
                             });
                             layer.bindPopup(props.join("<br/>"));
                             layer.on('popupopen', function(e) {
@@ -296,9 +296,10 @@
                         var props = model.attributes.geojson.features[0].properties;
                         // Add all of the properties we can choose from the layer
                         // we've selected.
-                        _.each(props, _.bind(function(prop) {
+                        alert(props);
+                        _.each(props, _.bind(function(v, k) {
                             $fieldlist.append(
-                                this.optionTemplate({val: prop[0], name: prop[0]})
+                                this.optionTemplate({val: v, name:k})
                             )
                         },this));
                         
@@ -315,7 +316,7 @@
                     // trigger an immediate change so we get the field options
                     // for the initial model in the layerlist.
                     $layerlist.change();
-                    this.$scm.modal();
+                    this.$scm.modal(); // Fire the dialog box
                     // Kill any other event handlers
                     $(".go", this.$scm).unbind('click');
                     // And bind the click to run the operation
@@ -324,7 +325,7 @@
                         var field = $(".field-list", this.$scm).val() + "::float";
                         var layer = $(".layer-list", this.$scm).val();
                         var operation = $(".operation-list", this.$scm).val();
-                        //  Run the calculation, which should create a new layer
+                        // Run the calculation, which should create a new layer
                         // and add it to the map automagically.
                         this.model.spatialCalc(map_layers.get(layer), operation, field);
                         this.$scm.modal('hide');

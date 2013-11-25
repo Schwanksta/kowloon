@@ -22,11 +22,14 @@ def _get_model_name(self):
     return self._meta.object_name
 
 def _get_properties(self):
-    properties = []
+    """
+    Returns a dict of the non-geo fields.
+    """
+    properties = {}
     for field in self.__dict__.keys():
         # Geom fields all have geom_type
         if not getattr(getattr(self, field), 'geom_type', None) and not field in ('geojson', '_state'):
-            properties.append((field, unicode(getattr(self, field))))
+            properties.update({ field: unicode(getattr(self, field)) })
     return json.dumps(properties)
 
 def _get_geom_fields(self):
