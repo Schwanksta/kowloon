@@ -171,6 +171,12 @@
                 return newLayer;
             },
             styleForBreaks: function(breaks, property) {
+                /*
+                * Takes a set of breakpoints in the format of
+                * [[ 100, "#f00"], [300, "#0f0"], [600, "#00f"]]
+                * and the name of a property to compare aginst the breakpoint.
+                * Should restyle any feature below a breakpoint to the paired color.
+                */
                 var get_color = function(value) {
                     for(var i=0; i<breaks.length; i++) {
                         if(value < breaks[i][0]) {
