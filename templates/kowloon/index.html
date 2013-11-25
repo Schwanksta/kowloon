@@ -316,16 +316,20 @@
                     // for the initial model in the layerlist.
                     $layerlist.change();
                     this.$scm.modal();
-                }, this));
-                $(".go", this.$scm).on('click', _.bind(function(e) {
-                    console.log("!!!");
-                    // We're going to force-cast everything to float for now.
-                    var field = $(".field-list", this.$scm).val() + "::float";
-                    var layer = $(".layer-list", this.$scm).val();
-                    var operation = $(".operation-list", this.$scm).val();
-                    //  Run the calculation, which should create a new layer
-                    // and add it to the map automagically.
-                    this.model.spatialCalc(map_layers.get(layer), operation, field);
+                    // Kill any other event handlers
+                    $(".go", this.$scm).unbind('click');
+                    // And bind the click to run the operation
+                    $(".go", this.$scm).on('click', _.bind(function(e) {
+                        // We're going to force-cast everything to float for now.
+                        var field = $(".field-list", this.$scm).val() + "::float";
+                        var layer = $(".layer-list", this.$scm).val();
+                        var operation = $(".operation-list", this.$scm).val();
+                        //  Run the calculation, which should create a new layer
+                        // and add it to the map automagically.
+                        this.model.spatialCalc(map_layers.get(layer), operation, field);
+                        this.$scm.modal('hide');
+                    }, this));
+
                 }, this));
             },
             render: function() {
