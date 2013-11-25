@@ -151,7 +151,6 @@
                 saveAs(blob, this.id + ".geojson");
             },
             spatialCalc: function(layer, operation, field) {
-                console.log(this);
                 /*
                 * Returns a new layer based on the options you pass in.
                 */
@@ -170,6 +169,26 @@
                 var newLayer = new Layer({ id: this.id + '_' + layer.id + '_' + operation, url: url })
                 map_layers.add(newLayer);
                 return newLayer;
+            },
+            styleForBreaks: function(breaks, property) {
+                var get_color = function(value) {
+                    for(var i=0; i<breaks.length; i++) {
+                        if(value < breaks[i][0]) {
+                            return breaks[i][1];
+                        }
+                    }
+                    return null;
+                }
+                this.get('layer').setStyle(function(layer) {
+                    var value = parseFloat(layer.properties[property]);
+                    var color = get_color(value);
+                    if(color) {
+                        console.log(color);
+                        return { fill: true, fillColor: color };
+                    } else {
+                        return { fill: false };
+                    }
+                });
             },
             hideFromMap: function() {
                 this.get('map').removeLayer(this.get('layer'));
