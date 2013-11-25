@@ -322,7 +322,7 @@
                         // we've selected.
                         _.each(props, _.bind(function(v, k) {
                             $fieldlist.append(
-                                this.optionTemplate({val: v, name:k})
+                                this.optionTemplate({val: k, name:k})
                             )
                         },this));
                         
