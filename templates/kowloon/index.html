@@ -320,7 +320,6 @@
                         var props = model.attributes.geojson.features[0].properties;
                         // Add all of the properties we can choose from the layer
                         // we've selected.
-                        alert(props);
                         _.each(props, _.bind(function(v, k) {
                             $fieldlist.append(
                                 this.optionTemplate({val: v, name:k})
