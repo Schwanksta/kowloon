@@ -219,7 +219,7 @@
                     var value = parseFloat(layer.properties[property]);
                     var color = get_color(value);
                     if(color) {
-                        return { fill: true, fillColor: color };
+                        return { fill: true, fillColor: color, fillOpacity:0.8 };
                     } else {
                         return { fill: false };
                     }
