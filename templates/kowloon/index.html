@@ -15,6 +15,7 @@
     <script src="/static/js/bootstrap.min.js"></script>
     <script src="/static/js/FileSaver.js"></script>
     <script src="/static/js/simple_statistics.js"></script>
+    <script src="/static/js/colorbrewer.v1.min.js"></script>
     <style type="text/css">
     html, body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outline:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
     /* APP */
@@ -169,6 +170,35 @@
                 var newLayer = new Layer({ id: this.id + '_' + layer.id + '_' + operation, url: url })
                 map_layers.add(newLayer);
                 return newLayer;
+            },
+            allProperties: function() {
+                var pl = [];
+                this.get('layer').eachLayer(function(layer) {
+                    pl.push(layer.feature.properties);
+                });
+                return pl;
+            },
+            listForProperty: function(property, cast, keepNull) {
+                var f = function(p) {
+                    if(cast) {
+                        return cast(p[property]);
+                    } else {
+                        return p[property];
+                    }
+                }
+                var rejectNull = function(n) {
+                    if( isNaN(n) || n === undefined || n === null) {
+                        return true;
+                    }
+                }
+                var l = _.map(this.allProperties(), f);
+                if(!keepNull) {
+                    return _.reject(l, rejectNull)
+                }
+                return l;
+            },
+            jenksBreaks: function(n_breaks, property) {
+                return ss.jenks(this.listForProperty(property, parseFloat, false), n_breaks);
             },
             styleForBreaks: function(breaks, property) {
                 /*
