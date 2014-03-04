@@ -12,6 +12,12 @@ from django.contrib.gis.management.commands.inspectdb import Command as InspectD
 
 class Command(InspectDBCommand):
 
+    def handle_inspection(self, options):
+        table_name = options.get('table_name', None)
+        if table_name:
+            options['table_name_filter'] = lambda x:  x == table_name
+        return super(InspectDBCommand, self).handle_inspection(options)
+
     def get_field_type(self, connection, table_name, row):
         field_type, field_params, field_notes = super(Command, self).get_field_type(connection, table_name, row)
         if field_type == 'CharField' and not field_params.get('max_length', None):

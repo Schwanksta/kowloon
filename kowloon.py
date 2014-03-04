@@ -6,12 +6,13 @@ from django.core.management import call_command
 
 parser = OptionParser()
 parser.add_option("-d", "--database", action="store", type="string", dest="database")
+parser.add_option("-t", "--table", action="store", type="string", dest="table")
 (options,args) = parser.parse_args()
 # We pass the database name in on the command line.
 settings.DATABASES['default']['NAME'] = options.database
 
 output = open("kowloon/models.py", "w") # Every time we run, we overwrite
-call_command("inspectdb",stdout=output) # the models file with Django's introspection
+call_command("inspectdb",table_name=options.table, stdout=output) # the models file with Django's introspection
 output.close()                          # this way we can run GeoDjango queries over 
                                         # arbitrary tables.
 if not 'shell' in args:
